@@ -15,6 +15,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-camel" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
 
+  "com.github.etaty" %% "rediscala" % "1.6.0",
+
+  "org.json4s" %% "json4s-jackson" % "3.3.0",
+
   "ch.qos.logback" % "logback-classic" % "1.1.2",
 
   "org.scalatest" %% "scalatest" % "2.2.4" % "test"

@@ -12,13 +12,7 @@ import scala.concurrent.duration._
 class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with FlatSpecLike with Matchers with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("DocPackPersistentSpec", ConfigFactory.parseString(
-    """
-      |akka.loggers = ["akka.event.slf4j.Slf4jLogger"]
-      |akka.loglevel = DEBUG
-      |akka.persistence.journal.plugin = "akka.persistence.journal.inmem"
-      |akka.persistence.snapshot-store.plugin = "akka.persistence.snapshot-store.local"
-    """.stripMargin)))
+  def this() = this(ActorSystem("DocPackPersistentSpec", ConfigFactory.load()))
 
   override def afterAll() = {
     Await.ready(system.terminate(), 3 seconds)
@@ -26,7 +20,7 @@ class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with 
 
   "DocPack" should "be created on new workflow" in {
     val docPackFactory = TestProbe()
-    val docPackPersistence = system.actorOf(Props(new DocPackPersistent(docPackFactory.ref.path)))
+    val docPackPersistence = system.actorOf(Props(classOf[DocPackPersistent], docPackFactory.ref.path))
     docPackPersistence ! NewWorkflow("w1")
     expectMsg(NewWorkflowAck)
 
@@ -42,7 +36,7 @@ class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with 
 
   "NewWorkflow" should "return WrongState if actor is not in the Idle state" in {
     val docPackFactory = TestProbe()
-    val docPackPersistence = system.actorOf(Props(new DocPackPersistent(docPackFactory.ref.path)))
+    val docPackPersistence = system.actorOf(Props(classOf[DocPackPersistent], docPackFactory.ref.path))
     docPackPersistence ! NewWorkflow("w1")
     expectMsg(NewWorkflowAck)
     docPackPersistence ! NewWorkflow("w2")
