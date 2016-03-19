@@ -1,5 +1,7 @@
 package ru.agafontsev
 
+import java.util.UUID
+
 import akka.actor.{Props, ActorSystem}
 import akka.testkit.{ImplicitSender, TestProbe, TestKit}
 import com.typesafe.config.{ConfigFactory, Config}
@@ -20,7 +22,8 @@ class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with 
 
   "DocPack" should "be created on new workflow" in {
     val docPackFactory = TestProbe()
-    val docPackPersistence = system.actorOf(Props(classOf[DocPackPersistent], docPackFactory.ref.path))
+    val docPackPersistence = system.actorOf(
+      Props(classOf[DocPackPersistent], UUID.randomUUID().toString, docPackFactory.ref.path))
     docPackPersistence ! NewWorkflow("w1")
     expectMsg(NewWorkflowAck)
 
@@ -36,7 +39,8 @@ class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with 
 
   "NewWorkflow" should "return WrongState if actor is not in the Idle state" in {
     val docPackFactory = TestProbe()
-    val docPackPersistence = system.actorOf(Props(classOf[DocPackPersistent], docPackFactory.ref.path))
+    val docPackPersistence = system.actorOf(
+      Props(classOf[DocPackPersistent], UUID.randomUUID().toString, docPackFactory.ref.path))
     docPackPersistence ! NewWorkflow("w1")
     expectMsg(NewWorkflowAck)
     docPackPersistence ! NewWorkflow("w2")

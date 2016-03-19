@@ -23,10 +23,10 @@ object DocPackPersistent {
   case class DocPackCreated(docPackId: String) extends State
 }
 
-class DocPackPersistent(docPackFactory: ActorPath) extends PersistentActor with AtLeastOnceDelivery {
+class DocPackPersistent(docPackId: String, docPackFactory: ActorPath) extends PersistentActor with AtLeastOnceDelivery {
   import DocPackPersistent._
 
-  override def persistenceId: String = s"docpack:${UUID.randomUUID()}"
+  override def persistenceId: String = s"docpack:$docPackId"
 
   private var state: State = Idle
 

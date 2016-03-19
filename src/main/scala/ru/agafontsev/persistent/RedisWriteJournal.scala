@@ -1,56 +1,18 @@
 package ru.agafontsev.persistent
 
 import akka.actor.ActorLogging
-import akka.persistence.{AtomicWrite, PersistentRepr}
 import akka.persistence.journal.AsyncWriteJournal
+import akka.persistence.{AtomicWrite, PersistentRepr}
 import akka.serialization.SerializationExtension
-import akka.util.ByteString
-import redis.ByteStringFormatter
 import redis.api.Limit
-import redis.commands.TransactionBuilder
-
-
 
 import scala.collection.immutable
 import scala.concurrent.Future
-import scala.util.{Success, Failure, Try}
-
-trait JournalEntry
-
-
-/**
-  * Journal entry that can be serialized and deserialized to JSON
-  * JSON in turn is serialized to ByteString so it can be stored in Redis with Rediscala
-  */
-case class Journal(sequenceNr: Long, persistenceRepr: Array[Byte], deleted: Boolean)
-
-object Journal {
-
-  import org.json4s._
-  import org.json4s.jackson.Serialization
-  import org.json4s.jackson.Serialization.{read, write}
-
-  implicit val formats = Serialization.formats(NoTypeHints)
-
-  implicit val byteStringFormatter = new ByteStringFormatter[Journal] {
-    override def serialize(data: Journal): ByteString = {
-      ByteString(write(data))
-    }
-
-    override def deserialize(bs: ByteString): Journal = {
-      try {
-        read[Journal](bs.utf8String)
-      } catch {
-        case e: Exception => throw new RuntimeException(e)
-      }
-    }
-  }
-}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Async write journal to Redis.
   * Writes journals in Sorted Set, using SequenceNr as score.
-  *
   *
   * Код частично позаимствован из проекта https://github.com/hootsuite/akka-persistence-redis
   */
@@ -70,7 +32,6 @@ class RedisWriteJournal extends AsyncWriteJournal with ActorLogging with RedisCo
 
   private def asyncWriteBatch(atomic: AtomicWrite): Future[Try[Unit]] = {
     import Journal._
-
     val transaction = redis.transaction()
     transaction.watch(highestSequenceNrKey(atomic.persistenceId))
 
@@ -78,7 +39,7 @@ class RedisWriteJournal extends AsyncWriteJournal with ActorLogging with RedisCo
       serialization.serialize(pr) match {
         case Success(serialized) =>
           log.debug(s"serialize message ${pr.persistenceId} - ${pr.sequenceNr}")
-          val journal = Journal(pr.sequenceNr, serialized, pr.deleted)
+          val journal = Journal(pr.sequenceNr, toBase64(serialized), pr.deleted)
           transaction.zadd(journalKey(pr.persistenceId), (pr.sequenceNr, journal))
         case Failure(e) =>
           log.error(e, "serialization failed")
@@ -107,9 +68,7 @@ class RedisWriteJournal extends AsyncWriteJournal with ActorLogging with RedisCo
 
   def asyncReplayMessages(persistenceId : String, fromSequenceNr : Long, toSequenceNr : Long, max : Long)
                          (replayCallback : PersistentRepr => Unit) : Future[Unit] = {
-
-
-
+    import Journal._
     for {
       journals <- redis.zrangebyscore[Journal](
                     journalKey(persistenceId),
@@ -118,7 +77,7 @@ class RedisWriteJournal extends AsyncWriteJournal with ActorLogging with RedisCo
                     Some((0L, max)))
     } yield {
       journals.foreach { journal =>
-        serialization.deserialize(journal.persistenceRepr,  classOf[PersistentRepr]) match {
+        serialization.deserialize(fromBase64(journal.persistenceReprBase64),  classOf[PersistentRepr]) match {
           case Success(repr) => replayCallback(repr)
           case Failure(e) => Future.failed(new RuntimeException(e))
         }
