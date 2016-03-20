@@ -3,10 +3,11 @@ package ru.agafontsev
 package object docpack {
 
   /**
-    * Создание пакета для существующего документооборота.
-    * @param workflowId идентификатор документооборота
+    * Новая транзакция.
+    * @param workflowId legacy-идентификатор документооборота.
+    * @param transactionId идентификатор транзакции.
     */
-  case class NewWorkflow(workflowId: String)
+  case class NewTransaction(workflowId: String, transactionId: String)
 
   /**
     * Запрос на преобразование существующего документооборота.
@@ -21,6 +22,12 @@ package object docpack {
     * Оповещение об обработке создания пакета из документооборота.
     */
   case object NewWorkflowAck
+  
+  case class AddDocument(documentId: String)
+
+  case class UpdateDocPackStatus(deliveryId: Long, docPackId: String, transactionId: String)
+
+  case class DocPackStatusUpdated(deliveryId: Long)
 
   /**
     * Запрос состояния пакета.

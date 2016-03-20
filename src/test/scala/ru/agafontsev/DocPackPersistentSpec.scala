@@ -26,26 +26,29 @@ class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with 
     val docPackFactory = TestProbe()
     val docPackPersistence = system.actorOf(
       Props(classOf[DocPackPersistent], UUID.randomUUID().toString, docPackFactory.ref.path))
-    docPackPersistence ! NewWorkflow("w1")
+    docPackPersistence ! NewTransaction("w1", "tr1")
     expectMsg(NewWorkflowAck)
 
     var deliveryId: Long = 0
     docPackFactory.expectMsgPF() {
-      case ConvertWorkflow(dId, "w1") => deliveryId = dId
+      case ConvertWorkflow(dId, "w1") => docPackFactory.reply(WorkflowConverted(deliveryId, "dp1"))
     }
-    docPackFactory.reply(WorkflowConverted(deliveryId, "dp1"))
 
     docPackPersistence ! GetState
     expectMsg(DocPackCreated("dp1"))
+
+    docPackFactory.expectMsgPF() {
+      case UpdateDocPackStatus(dlId, "dp1", "tr1") => docPackFactory.reply(DocPackStatusUpdated(dlId))
+    }
   }
 
   "NewWorkflow" should "return WrongState if actor is not in the Idle state" in {
     val docPackFactory = TestProbe()
     val docPackPersistence = system.actorOf(
       Props(classOf[DocPackPersistent], UUID.randomUUID().toString, docPackFactory.ref.path))
-    docPackPersistence ! NewWorkflow("w1")
+    docPackPersistence ! NewTransaction("w1", "tr1")
     expectMsg(NewWorkflowAck)
-    docPackPersistence ! NewWorkflow("w2")
+    docPackPersistence ! NewTransaction("w2", "tr1")
     expectMsg(WrongState)
   }
 

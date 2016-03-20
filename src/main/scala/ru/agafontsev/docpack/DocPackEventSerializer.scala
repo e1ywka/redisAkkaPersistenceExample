@@ -14,7 +14,9 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
   }
 
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
-    case "ConvertWorkflowSent.1" => ConvertWorkflowSent(new String(bytes, UTF_8))
+    case "ConvertWorkflowSent.1" =>
+      val split = new String(bytes, UTF_8).split("|")
+      ConvertWorkflowSent(split(0), split(1))
 
     case "ConvertWorkflowConfirmed.1" =>
       val split = new String(bytes, UTF_8).split("|")
@@ -26,7 +28,7 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
 
 
   override def toBinary(o: AnyRef): Array[Byte] = o match {
-    case ConvertWorkflowSent(wId) => wId.getBytes(UTF_8)
+    case ConvertWorkflowSent(wId, trId) => s"$wId|$trId".getBytes(UTF_8)
 
     case ConvertWorkflowConfirmed(d, dpId) => s"$d|$dpId".getBytes(UTF_8)
 
