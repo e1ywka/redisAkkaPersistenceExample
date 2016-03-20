@@ -6,7 +6,9 @@ import akka.actor.{Props, ActorSystem}
 import akka.testkit.{ImplicitSender, TestProbe, TestKit}
 import com.typesafe.config.{ConfigFactory, Config}
 import org.scalatest.{BeforeAndAfterAll, Matchers, FlatSpecLike}
-import DocPackPersistent._
+import ru.agafontsev.docpack._
+import ru.agafontsev.docpack.DocPackPersistent
+import ru.agafontsev.docpack.DocPackPersistent._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

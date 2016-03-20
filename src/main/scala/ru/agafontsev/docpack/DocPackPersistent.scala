@@ -1,18 +1,9 @@
-package ru.agafontsev
-
-import java.util.UUID
+package ru.agafontsev.docpack
 
 import akka.actor.ActorPath
 import akka.persistence.{AtLeastOnceDelivery, PersistentActor}
 
 object DocPackPersistent {
-  case class NewWorkflow(workflowId: String)
-  case class ConvertWorkflow(deliveryId: Long, workflowId: String)
-  case class WorkflowConverted(deliveryId: Long, docPackId: String)
-  case object NewWorkflowAck
-  case object GetState
-  case object WrongState
-
   sealed trait DocPackEvent
   case class ConvertWorkflowSent(workflowId: String) extends DocPackEvent
   case class ConvertWorkflowConfirmed(deliveryId: Long, docPackId: String) extends DocPackEvent

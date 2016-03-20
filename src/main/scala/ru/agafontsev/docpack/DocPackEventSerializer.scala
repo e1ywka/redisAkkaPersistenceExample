@@ -1,7 +1,7 @@
-package ru.agafontsev
+package ru.agafontsev.docpack
 
 import akka.serialization.SerializerWithStringManifest
-import ru.agafontsev.DocPackPersistent.{ConvertWorkflowConfirmed, ConvertWorkflowSent}
+import ru.agafontsev.docpack.DocPackPersistent.{ConvertWorkflowConfirmed, ConvertWorkflowSent}
 
 class DocPackEventSerializer extends SerializerWithStringManifest {
   import java.nio.charset.StandardCharsets.UTF_8
