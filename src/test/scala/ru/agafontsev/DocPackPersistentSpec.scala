@@ -48,4 +48,8 @@ class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with 
     docPackPersistence ! NewWorkflow("w2")
     expectMsg(WrongState)
   }
+
+  "DocPack" should "" in {
+
+  }
 }
