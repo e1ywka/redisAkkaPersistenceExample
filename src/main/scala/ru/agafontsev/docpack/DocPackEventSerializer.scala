@@ -20,7 +20,7 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
 
     case "ConvertWorkflowConfirmed.1" =>
       val split = new String(bytes, UTF_8).split("|")
-      ConvertWorkflowConfirmed(split(0).toLong, split(1))
+      ConvertWorkflowConfirmed(split(0).toLong, split(1), split(2))
 
     case m => throw new IllegalArgumentException(
       s"Unable to deserialize from bytes, manifest was: $manifest! Bytes length: ${bytes.length}")
@@ -30,7 +30,7 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
   override def toBinary(o: AnyRef): Array[Byte] = o match {
     case ConvertWorkflowSent(wId, trId) => s"$wId|$trId".getBytes(UTF_8)
 
-    case ConvertWorkflowConfirmed(d, dpId) => s"$d|$dpId".getBytes(UTF_8)
+    case ConvertWorkflowConfirmed(d, wId, dpId) => s"$d|$wId|$dpId".getBytes(UTF_8)
 
     case _ => throw new IllegalArgumentException(
       s"Unable to serialize to bytes, clazz was: ${o.getClass}!")

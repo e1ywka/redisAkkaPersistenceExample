@@ -1,7 +1,7 @@
 package ru.agafontsev.persistent
 
 import akka.actor.ActorLogging
-import akka.persistence.journal.AsyncWriteJournal
+import akka.persistence.journal.{Tagged, AsyncWriteJournal}
 import akka.persistence.{AtomicWrite, PersistentRepr}
 import akka.serialization.SerializationExtension
 import redis.api.Limit
@@ -24,6 +24,8 @@ class RedisWriteJournal extends AsyncWriteJournal with ActorLogging with RedisCo
   // Redis key namespace for journals
   private def journalKey(persistenceId: String) = s"journal:$persistenceId"
 
+  private def tagKey(tag: String) = s"journal:tags:$tag"
+
   private def highestSequenceNrKey(persistenceId: String) = s"${journalKey(persistenceId)}:highestSequenceNr"
 
   override def asyncWriteMessages(messages: immutable.Seq[AtomicWrite]): Future[immutable.Seq[Try[Unit]]] = {
@@ -35,17 +37,25 @@ class RedisWriteJournal extends AsyncWriteJournal with ActorLogging with RedisCo
     val transaction = redis.transaction()
     transaction.watch(highestSequenceNrKey(atomic.persistenceId))
 
-    val zAddS = atomic.payload.map( pr => {
-      serialization.serialize(pr) match {
-        case Success(serialized) =>
-          log.debug(s"serialize message ${pr.persistenceId} - ${pr.sequenceNr}")
-          val journal = Journal(pr.sequenceNr, toBase64(serialized), pr.deleted)
-          transaction.zadd(journalKey(pr.persistenceId), (pr.sequenceNr, journal))
-        case Failure(e) =>
-          log.error(e, "serialization failed")
-          Future.failed(e)
-      }
-    })
+    val zAddS = atomic.payload
+      .map( pr => pr.payload match {
+        case Tagged(payload, tags) =>
+          log.debug(s"add tags $tags")
+          tags.foreach(tag => transaction.sadd(tagKey(tag), pr.persistenceId))
+          pr.withPayload(payload)
+
+        case _ => pr
+      }).map( pr => {
+        serialization.serialize(pr) match {
+          case Success(serialized) =>
+            log.debug(s"serialize message ${pr.persistenceId} - ${pr.sequenceNr}")
+            val journal = Journal(pr.sequenceNr, toBase64(serialized), pr.deleted)
+            transaction.zadd(journalKey(pr.persistenceId), (pr.sequenceNr, journal))
+          case Failure(e) =>
+            log.error(e, "serialization failed")
+            Future.failed(e)
+        }
+      })
 
     val journalsF = Future.sequence(zAddS)
     val setHighestSqNrF = transaction.set(highestSequenceNrKey(atomic.persistenceId), atomic.highestSequenceNr)

@@ -31,7 +31,7 @@ class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with 
 
     var deliveryId: Long = 0
     docPackFactory.expectMsgPF() {
-      case ConvertWorkflow(dId, "w1") => docPackFactory.reply(WorkflowConverted(deliveryId, "dp1"))
+      case ConvertWorkflow(dId, "w1") => docPackFactory.reply(WorkflowConverted(deliveryId, "w1", "dp1"))
     }
 
     docPackPersistence ! GetState

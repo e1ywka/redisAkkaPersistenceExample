@@ -16,7 +16,9 @@ package object docpack {
     */
   case class ConvertWorkflow(deliveryId: Long, workflowId: String)
 
-  case class WorkflowConverted(deliveryId: Long, docPackId: String)
+  case class WorkflowConverted(deliveryId: Long, workflowId: String, docPackId: String)
+
+  case class NewDocPack(docPackId: String)
 
   /**
     * Оповещение об обработке создания пакета из документооборота.

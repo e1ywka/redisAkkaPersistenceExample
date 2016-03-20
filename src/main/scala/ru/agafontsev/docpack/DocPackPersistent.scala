@@ -28,7 +28,9 @@ object DocPackPersistent {
     * @param deliveryId
     * @param docPackId
     */
-  case class ConvertWorkflowConfirmed(deliveryId: Long, docPackId: String) extends DocPackEvent
+  case class ConvertWorkflowConfirmed(deliveryId: Long, workflowId: String, docPackId: String) extends DocPackEvent
+
+  case class NewDocPack(docPackId: String) extends DocPackEvent
 
   case class UpdateDocPackStatusSent(transactionId: String) extends DocPackEvent
 
@@ -105,7 +107,7 @@ class DocPackPersistent(persistentId: String, docPackFactory: ActorPath) extends
     // Добавление документа в новый пакет
     case AddDocument(docId) if state == Idle =>
 
-    case WorkflowConverted(deliveryId, dpId) => persist(ConvertWorkflowConfirmed(deliveryId, dpId))(handleEvent)
+    case WorkflowConverted(deliveryId, wId, dpId) => persist(ConvertWorkflowConfirmed(deliveryId, wId, dpId))(handleEvent)
 
     case DocPackStatusUpdated(deliveryId) => persist(DocPackStatusUpdateConfirmed(deliveryId))(handleEvent)
 
@@ -118,13 +120,15 @@ class DocPackPersistent(persistentId: String, docPackFactory: ActorPath) extends
       state = NewWorkflowProcessing(wId, trId)
       sender() ! NewWorkflowAck
 
-    case ConvertWorkflowConfirmed(deliveryId, dpId) =>
+    case ConvertWorkflowConfirmed(deliveryId, _, dpId) =>
       confirmDelivery(deliveryId)
       state match {
-        case NewWorkflowProcessing(wId, trId) =>
+        case NewWorkflowProcessing(_, trId) =>
           state = DocPackCreated(dpId)
           persist(UpdateDocPackStatusSent(trId))(handleEvent)
       }
+
+    case NewDocPack(dpId) => state = DocPackCreated(dpId)
 
     case UpdateDocPackStatusSent(trId) =>
       state match {
