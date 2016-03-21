@@ -5,6 +5,7 @@ import akka.persistence.journal.{Tagged, AsyncWriteJournal}
 import akka.persistence.{AtomicWrite, PersistentRepr}
 import akka.serialization.SerializationExtension
 import redis.api.Limit
+import ru.agafontsev.redis.RedisClientExtension
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -16,10 +17,11 @@ import scala.util.{Failure, Success, Try}
   *
   * Код частично позаимствован из проекта https://github.com/hootsuite/akka-persistence-redis
   */
-class RedisWriteJournal extends AsyncWriteJournal with ActorLogging with RedisComponent {
+class RedisWriteJournal extends AsyncWriteJournal with ActorLogging {
 
-  override implicit lazy val actorSystem = context.system
+  implicit val actorSystem = context.system
   implicit val ec = context.system.dispatcher
+  private val redis = RedisClientExtension(context.system).client
   private val serialization = SerializationExtension(context.system)
   // Redis key namespace for journals
   private def journalKey(persistenceId: String) = s"journal:$persistenceId"

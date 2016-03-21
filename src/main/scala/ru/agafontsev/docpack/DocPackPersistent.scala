@@ -58,20 +58,6 @@ object DocPackPersistent {
     */
   case class DocPackCreated(docPackId: String) extends State
 
-  def findDocPack(docPackId: String)
-                 (implicit system: ActorSystem, timeout: Timeout, ec: ExecutionContext): Future[ActorRef] = {
-
-    system.actorSelection(system / s"user/docpack-$docPackId") ? Identify(docPackId) map {
-      case ActorIdentity(`docPackId`, Some(actorRef)) => actorRef
-
-      case ActorIdentity(`docPackId`, None) =>
-        //todo вынести название docPackFactory в константы
-        system.actorOf(
-          docPackPropsWithBackoff(docPackId, ActorPath.fromString("/user/docPackFactory")),
-          s"docpack-$docPackId")
-    }
-  }
-
   def docPackPropsWithBackoff(docPackId: String, docPackFactory: ActorPath): Props = {
     val childProps = Props(new DocPackPersistent(docPackId, docPackFactory))
     BackoffSupervisor.props(
