@@ -1,15 +1,20 @@
 package ru.agafontsev.businessProcess
 
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
-import org.scalatest.{FlatSpecLike, Matchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import ru.agafontsev.persistent.RedisJournalTag
 
 import scala.concurrent.Future
 
 class TransactionRouterSpec(_system: ActorSystem) extends TestKit(_system)
-  with FlatSpecLike with Matchers with ImplicitSender {
+  with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll {
+
   def this() = this(ActorSystem("TransactionRouterSpec"))
+
+  override protected def afterAll() = {
+    system.terminate()
+  }
 
   "Transaction router" should "query existing tags for new transaction" in {
     val existedPersistentId = "p1"

@@ -3,8 +3,7 @@
  */
 package ru.agafontsev.businessProcess
 
-import akka.actor.{Terminated, Actor, ActorRef, Props}
-import akka.dispatch.sysmsg.Terminate
+import akka.actor._
 
 import scala.collection.mutable
 
@@ -12,7 +11,7 @@ case class GetActorByPersistenceId(persistenceId: String)
 case class GetActorByWorkflowId(workflowId: String)
 case class PersistentActor(ref: ActorRef)
 
-class PersistentActorWatcher(childProps: String => Props, uniquePersistenceId: () => String) extends Actor {
+class PersistentActorWatcher(childMaker: (ActorRefFactory, String) => ActorRef, uniquePersistenceId: () => String) extends Actor {
 
   val persistentActorByWorkflowId: mutable.HashMap[String, ActorRef] = mutable.HashMap.empty
   val workflowIdByActor: mutable.HashMap[ActorRef, String] = mutable.HashMap.empty
@@ -23,14 +22,14 @@ class PersistentActorWatcher(childProps: String => Props, uniquePersistenceId: (
   def receive: Receive = {
     case GetActorByPersistenceId(persistenceId) =>
       val child = persistentActorByPersistentId.getOrElseUpdate(persistenceId, {
-        context.watch(context.actorOf(childProps(persistenceId)))
+        context.watch(childMaker(context, persistenceId))
       })
       sender() ! PersistentActor(child)
 
     case GetActorByWorkflowId(workflowId) =>
       val ref = persistentActorByWorkflowId.getOrElseUpdate(workflowId, {
         val id = uniquePersistenceId()
-        val child = context.watch(context.actorOf(childProps(id)))
+        val child = context.watch(childMaker(context, id))
         persistentActorByPersistentId += id -> child
         child
       })
