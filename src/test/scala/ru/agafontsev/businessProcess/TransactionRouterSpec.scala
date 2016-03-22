@@ -38,7 +38,7 @@ class TransactionRouterSpec(_system: ActorSystem) extends TestKit(_system)
     router ! env
 
     persistenceActorWatcher.expectMsg(GetActorByPersistenceId(existedPersistentId))
-    persistenceActorWatcher.reply(PersistentActor(persistenceActor.ref))
+    persistenceActorWatcher.reply(PersistentActorRef(persistenceActor.ref))
 
     persistenceActor.expectMsg(env)
   }
@@ -66,9 +66,9 @@ class TransactionRouterSpec(_system: ActorSystem) extends TestKit(_system)
     router ! env2
 
     persistenceActorWatcher.expectMsg(GetActorByWorkflowId("wId"))
-    persistenceActorWatcher.reply(PersistentActor(persistenceActor.ref))
+    persistenceActorWatcher.reply(PersistentActorRef(persistenceActor.ref))
     persistenceActorWatcher.expectMsg(GetActorByWorkflowId("wId"))
-    persistenceActorWatcher.reply(PersistentActor(persistenceActor.ref))
+    persistenceActorWatcher.reply(PersistentActorRef(persistenceActor.ref))
 
     persistenceActor.expectMsgAllOf(env1, env2)
   }

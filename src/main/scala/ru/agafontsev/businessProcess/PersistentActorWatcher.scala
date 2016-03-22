@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 case class GetActorByPersistenceId(persistenceId: String)
 case class GetActorByWorkflowId(workflowId: String)
-case class PersistentActor(ref: ActorRef)
+case class PersistentActorRef(ref: ActorRef)
 
 class PersistentActorWatcher(childMaker: (ActorRefFactory, String) => ActorRef, uniquePersistenceId: () => String) extends Actor {
 
@@ -24,7 +24,7 @@ class PersistentActorWatcher(childMaker: (ActorRefFactory, String) => ActorRef, 
       val child = persistentActorByPersistentId.getOrElseUpdate(persistenceId, {
         context.watch(childMaker(context, persistenceId))
       })
-      sender() ! PersistentActor(child)
+      sender() ! PersistentActorRef(child)
 
     case GetActorByWorkflowId(workflowId) =>
       val ref = persistentActorByWorkflowId.getOrElseUpdate(workflowId, {
@@ -33,7 +33,7 @@ class PersistentActorWatcher(childMaker: (ActorRefFactory, String) => ActorRef, 
         persistentActorByPersistentId += id -> child
         child
       })
-      sender() ! PersistentActor(ref)
+      sender() ! PersistentActorRef(ref)
 
     case Terminated(ref) =>
       workflowIdByActor.get(ref) match {

@@ -30,10 +30,10 @@ with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll with 
     val watcher = system.actorOf(Props(new PersistentActorWatcher(makerMock, () => persistenceId)))
 
     watcher ! GetActorByWorkflowId("wId")
-    expectMsg(PersistentActor(persistentActorProbe.ref))
+    expectMsg(PersistentActorRef(persistentActorProbe.ref))
 
     watcher ! GetActorByWorkflowId("wId")
-    expectMsg(PersistentActor(persistentActorProbe.ref))
+    expectMsg(PersistentActorRef(persistentActorProbe.ref))
   }
 
   "Watcher" should "create new actor for workflow id and return same actor for persistence id" in {
@@ -47,9 +47,9 @@ with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll with 
     val watcher = system.actorOf(Props(new PersistentActorWatcher(makerMock, () => persistenceId)))
 
     watcher ! GetActorByWorkflowId("wId")
-    expectMsg(PersistentActor(persistentActorProbe.ref))
+    expectMsg(PersistentActorRef(persistentActorProbe.ref))
 
     watcher ! GetActorByPersistenceId(persistenceId)
-    expectMsg(PersistentActor(persistentActorProbe.ref))
+    expectMsg(PersistentActorRef(persistentActorProbe.ref))
   }
 }

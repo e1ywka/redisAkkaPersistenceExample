@@ -20,12 +20,12 @@ class TransactionRouter(persistentActorWatcher: ActorRef,
         case seq: Seq[String] if seq.nonEmpty =>
           seq.foreach { id =>
             (persistentActorWatcher ? GetActorByPersistenceId(id))
-              .mapTo[PersistentActor].map(_.ref ! env)
+              .mapTo[PersistentActorRef].map(_.ref ! env)
           }
 
         case _ =>
           (persistentActorWatcher ? GetActorByWorkflowId(wId))
-            .mapTo[PersistentActor]
+            .mapTo[PersistentActorRef]
             .foreach(_.ref ! env)
       }
   }

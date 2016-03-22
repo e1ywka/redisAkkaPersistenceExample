@@ -6,9 +6,17 @@ package object businessProcess {
 
   case class ConsumerEnvelope(consumer: ActorRef, correlationId: String, msg: AnyRef)
 
+  case class AckEnvelope(correlationId: String)
+
   case class NewTransaction(workflowId: String, transactionId: String)
 
-  case class InitBusinessProcess(workflowId: String)
+  case class UpdateBusinessProcess(deliveryId: Long, workflowId: String, transactionId: String)
 
-  case object InitBusinessProcessComplete
+  case class BusinessProcessStatusUpdated(deliveryId: Long, businessProcessId: String)
+
+  case class BusinessProcessStatusNotChanged(deliveryId: Long)
+
+  case class UpdateDocPackStatus(deliveryId: Long, businessProcessId: String)
+
+  case class DocPackStatusUpdated(deliveryId: Long)
 }
