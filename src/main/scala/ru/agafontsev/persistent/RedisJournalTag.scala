@@ -3,9 +3,17 @@
  */
 package ru.agafontsev.persistent
 
+import akka.actor.ActorSystem
 import redis.RedisClient
+import ru.agafontsev.redis.RedisClientExtension
 
-object RedisJournalTag {
+import scala.concurrent.Future
+
+trait RedisJournalTag {
+  def allPersistentIdsByTag(tag: String)(implicit actorSystem: ActorSystem): Future[Seq[String]]
+}
+
+object RedisJournalTagImpl extends RedisJournalTag {
   /**
     * Поиск идентификаторов акторов по указанному тэгу.
     * Тэги хранятся как ключи в redis.
@@ -14,6 +22,9 @@ object RedisJournalTag {
     * @param tag тэг.
     * @return идентификаторы persistent actor.
     */
-  def allPersistentIdsByTag(tag: String): Set[String] = ???
+  def allPersistentIdsByTag(tag: String)(implicit actorSystem: ActorSystem): Future[Seq[String]] = {
+    val redis: RedisClient = RedisClientExtension(actorSystem).client
+    redis.smembers[String](tag)
+  }
 
 }
