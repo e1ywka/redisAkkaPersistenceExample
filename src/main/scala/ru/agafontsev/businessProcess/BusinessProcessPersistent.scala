@@ -5,7 +5,7 @@ import java.util.UUID
 import akka.actor._
 import akka.persistence.{AtLeastOnceDelivery, PersistentActor}
 
-import scala.collection.mutable.{TreeSet => MutableTreeSet}
+import scala.collection.mutable.{HashSet => MutableHashSet}
 
 class BusinessProcessPersistent(id: String,
                                 businessProcessFactory: ActorPath,
@@ -15,7 +15,7 @@ class BusinessProcessPersistent(id: String,
   import BusinessProcessPersistent._
 
   private var state: State = Idle
-  private val processedEnvelopes = MutableTreeSet.empty[String]
+  private val processedEnvelopes = MutableHashSet.empty[String]
 
   override def persistenceId: String = id
 

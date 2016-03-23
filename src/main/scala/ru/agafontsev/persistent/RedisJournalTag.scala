@@ -24,7 +24,7 @@ object RedisJournalTagImpl extends RedisJournalTag {
     */
   def allPersistentIdsByTag(tag: String)(implicit actorSystem: ActorSystem): Future[Seq[String]] = {
     val redis: RedisClient = RedisClientExtension(actorSystem).client
-    redis.smembers[String](tag)
+    redis.smembers[String](RedisWriteJournal.tagKey(tag))
   }
 
 }

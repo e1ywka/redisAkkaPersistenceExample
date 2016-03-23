@@ -9,6 +9,7 @@ class BusinessProcessTaggingWriteAdapter extends WriteEventAdapter {
 
   override def toJournal(event: Any): Any = event match {
     case InitBusinessProcess(wId) => Tagged(event, Set(workflowTag(wId)))
+    case e => e
   }
 }
 

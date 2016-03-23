@@ -1,7 +1,7 @@
 package ru.agafontsev.persistent
 
 import akka.actor.ActorLogging
-import akka.persistence.journal.{Tagged, AsyncWriteJournal}
+import akka.persistence.journal.{AsyncWriteJournal, Tagged}
 import akka.persistence.{AtomicWrite, PersistentRepr}
 import akka.serialization.SerializationExtension
 import redis.api.Limit
@@ -11,6 +11,14 @@ import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
+object RedisWriteJournal {
+  def journalKey(persistenceId: String) = s"journal:$persistenceId"
+
+  def tagKey(tag: String) = s"journal:tags:$tag"
+
+  def highestSequenceNrKey(persistenceId: String) = s"${journalKey(persistenceId)}:highestSequenceNr"
+}
+
 /**
   * Async write journal to Redis.
   * Writes journals in Sorted Set, using SequenceNr as score.
@@ -18,17 +26,10 @@ import scala.util.{Failure, Success, Try}
   * Код частично позаимствован из проекта https://github.com/hootsuite/akka-persistence-redis
   */
 class RedisWriteJournal extends AsyncWriteJournal with ActorLogging {
-
-  implicit val actorSystem = context.system
+  import RedisWriteJournal._
   implicit val ec = context.system.dispatcher
   private val redis = RedisClientExtension(context.system).client
   private val serialization = SerializationExtension(context.system)
-  // Redis key namespace for journals
-  private def journalKey(persistenceId: String) = s"journal:$persistenceId"
-
-  private def tagKey(tag: String) = s"journal:tags:$tag"
-
-  private def highestSequenceNrKey(persistenceId: String) = s"${journalKey(persistenceId)}:highestSequenceNr"
 
   override def asyncWriteMessages(messages: immutable.Seq[AtomicWrite]): Future[immutable.Seq[Try[Unit]]] = {
     Future.sequence(messages.map(asyncWriteBatch))
