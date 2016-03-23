@@ -16,6 +16,9 @@ class BusinessProcessEventSerializer extends SerializerWithStringManifest {
   override def manifest(o: AnyRef): String = o match {
     case _: RelatedWorkflowChanged => RelatedWorkflowChanged_v1
     case _: InitBusinessProcess => InitBusinessProcess_v1
+    case _: DocPackStatusNeedsUpdate => DocPackStatusNeedsUpdate_v1
+    case _: DocPackStatusConfirmed => DocPackStatusConfirmed_v1
+    case _: RelatedWorkflowChangeConfirmed => RelatedWorkflowChangeConfirmed_v1
   }
 
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
