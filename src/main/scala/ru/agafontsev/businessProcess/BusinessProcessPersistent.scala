@@ -39,7 +39,7 @@ class BusinessProcessPersistent(id: String,
     case BusinessProcessStatusNotChanged(deliveryId) =>
       persist(RelatedWorkflowChangeConfirmed(deliveryId))(handleEvent)
 
-    case DocPackStatusUpdated(deliveryId) =>
+    case DocPackStatusUpdateConfirmed(deliveryId) =>
       persist(DocPackStatusConfirmed(deliveryId))(handleEvent)
   }
 
@@ -53,7 +53,7 @@ class BusinessProcessPersistent(id: String,
 
     case DocPackStatusNeedsUpdate(delvr, bpId) =>
       confirmDelivery(delvr)
-      deliver(docPackRouter.path)(deliveryId => UpdateDocPackStatus(deliveryId, bpId))
+      deliver(docPackRouter.path)(deliveryId => UpdateDocPackStatusByBusinessProcess(deliveryId, bpId, self))
 
     case DocPackStatusConfirmed(delvr) =>
       confirmDelivery(delvr)

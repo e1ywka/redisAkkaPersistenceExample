@@ -58,8 +58,8 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
         expectMsg(AckEnvelope("corId"))
         businessProcessFactory.expectMsg(UpdateBusinessProcess(1, workflowId, "tId"))
         businessProcessFactory.reply(BusinessProcessStatusUpdated(1, "bpId"))
-        docPackRouterProbe.expectMsg(UpdateDocPackStatus(2, "bpId"))
-        docPackRouterProbe.reply(DocPackStatusUpdated(2))
+        docPackRouterProbe.expectMsg(UpdateDocPackStatusByBusinessProcess(2, "bpId", bpActor))
+        docPackRouterProbe.reply(DocPackStatusUpdateConfirmed(2))
       }
     }
 

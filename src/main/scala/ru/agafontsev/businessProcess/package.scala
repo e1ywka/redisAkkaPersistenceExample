@@ -16,7 +16,7 @@ package object businessProcess {
 
   case class BusinessProcessStatusNotChanged(deliveryId: Long)
 
-  case class UpdateDocPackStatus(deliveryId: Long, businessProcessId: String)
+  case class UpdateDocPackStatusByBusinessProcess(deliveryId: Long, businessProcessId: String, responseTo: ActorRef)
 
-  case class DocPackStatusUpdated(deliveryId: Long)
+  case class DocPackStatusUpdateConfirmed(deliveryId: Long)
 }

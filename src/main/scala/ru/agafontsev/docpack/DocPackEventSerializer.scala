@@ -1,7 +1,7 @@
 package ru.agafontsev.docpack
 
 import akka.serialization.SerializerWithStringManifest
-import ru.agafontsev.docpack.DocPackPersistent.{ConvertWorkflowConfirmed, ConvertWorkflowSent}
+import ru.agafontsev.docpack.DocPackPersistent._
 
 class DocPackEventSerializer extends SerializerWithStringManifest {
   import java.nio.charset.StandardCharsets.UTF_8
@@ -9,18 +9,18 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
   override def identifier: Int = 1000
 
   override def manifest(o: AnyRef): String = o match {
-    case obj: ConvertWorkflowSent => "ConvertWorkflowSent.1"
-    case obj: ConvertWorkflowConfirmed => "ConvertWorkflowConfirmed.1"
+    case obj: UpdateDocPack => "UpdateDocPack.1"
+    case obj: DocPackUpdated => "DocPackUpdated.1"
   }
 
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
-    case "ConvertWorkflowSent.1" =>
+    case "UpdateDocPack.1" =>
       val split = new String(bytes, UTF_8).split("|")
-      ConvertWorkflowSent(split(0), split(1))
+      UpdateDocPack(split(0))
 
-    case "ConvertWorkflowConfirmed.1" =>
+    case "DocPackUpdated.1" =>
       val split = new String(bytes, UTF_8).split("|")
-      ConvertWorkflowConfirmed(split(0).toLong, split(1), split(2))
+      DocPackUpdated(split(0).toLong)
 
     case m => throw new IllegalArgumentException(
       s"Unable to deserialize from bytes, manifest was: $manifest! Bytes length: ${bytes.length}")
@@ -28,9 +28,9 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
 
 
   override def toBinary(o: AnyRef): Array[Byte] = o match {
-    case ConvertWorkflowSent(wId, trId) => s"$wId|$trId".getBytes(UTF_8)
+    case UpdateDocPack(bpId) => s"$bpId".getBytes(UTF_8)
 
-    case ConvertWorkflowConfirmed(d, wId, dpId) => s"$d|$wId|$dpId".getBytes(UTF_8)
+    case DocPackUpdated(d) => s"$d".getBytes(UTF_8)
 
     case _ => throw new IllegalArgumentException(
       s"Unable to serialize to bytes, clazz was: ${o.getClass}!")
