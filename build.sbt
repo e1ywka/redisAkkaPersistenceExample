@@ -13,8 +13,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
   "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
   "com.typesafe.akka" %% "akka-camel" % akkaVersion,
+  "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
   "com.typesafe.akka" %% "akka-persistence-tck" % akkaVersion % "test",
+  "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "test",
 
   "com.github.etaty" %% "rediscala" % "1.6.0",
 
