@@ -23,7 +23,7 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
       val docPackRouterProbe = TestProbe()
       val businessProcessFactory = TestProbe()
       val persistentId = UUID.randomUUID().toString
-      val workflowId = UUID.randomUUID().toString
+      val workflowId = WorkflowId(UUID.randomUUID().toString)
 
       val bpActor = system.actorOf(Props(
         classOf[BusinessProcessPersistent],
@@ -32,10 +32,10 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
         docPackRouterProbe.ref)
       )
       within(10.seconds.dilated) {
-        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, "tId"))
+        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, TransactionId("tId")))
         expectMsg(AckEnvelope("corId"))
-        businessProcessFactory.expectMsg(UpdateBusinessProcess(1, workflowId, "tId"))
-        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, "tId"))
+        businessProcessFactory.expectMsg(UpdateBusinessProcess(1, workflowId, TransactionId("tId")))
+        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, TransactionId("tId")))
         expectMsg(AckEnvelope("corId"))
         businessProcessFactory.expectNoMsg()
       }
@@ -45,7 +45,7 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
       val docPackRouterProbe = TestProbe()
       val businessProcessFactory = TestProbe()
       val persistentId = UUID.randomUUID().toString
-      val workflowId = UUID.randomUUID().toString
+      val workflowId = WorkflowId(UUID.randomUUID().toString)
 
       val bpActor = system.actorOf(Props(
         classOf[BusinessProcessPersistent],
@@ -54,11 +54,11 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
         docPackRouterProbe.ref)
       )
       within(10.seconds.dilated) {
-        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, "tId"))
+        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, TransactionId("tId")))
         expectMsg(AckEnvelope("corId"))
-        businessProcessFactory.expectMsg(UpdateBusinessProcess(1, workflowId, "tId"))
-        businessProcessFactory.reply(BusinessProcessStatusUpdated(1, "bpId"))
-        docPackRouterProbe.expectMsg(UpdateDocPackStatusByBusinessProcess(2, "bpId", bpActor))
+        businessProcessFactory.expectMsg(UpdateBusinessProcess(1, workflowId, TransactionId("tId")))
+        businessProcessFactory.reply(BusinessProcessStatusUpdated(1, BusinessProcessId("bpId"), DocPackId("dpId")))
+        docPackRouterProbe.expectMsg(UpdateDocPackStatusByBusinessProcess(2, BusinessProcessId("bpId"), DocPackId("dpId"), bpActor))
         docPackRouterProbe.reply(DocPackStatusUpdateConfirmed(2))
       }
     }
@@ -67,7 +67,7 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
       val docPackRouterProbe = TestProbe()
       val businessProcessFactory = TestProbe()
       val persistentId = UUID.randomUUID().toString
-      val workflowId = UUID.randomUUID().toString
+      val workflowId = WorkflowId(UUID.randomUUID().toString)
 
       val bpActor = system.actorOf(Props(
         classOf[BusinessProcessPersistent],
@@ -76,9 +76,9 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
         docPackRouterProbe.ref)
       )
       within(10.seconds.dilated) {
-        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, "tId"))
+        bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, TransactionId("tId")))
         expectMsg(AckEnvelope("corId"))
-        businessProcessFactory.expectMsg(UpdateBusinessProcess(1, workflowId, "tId"))
+        businessProcessFactory.expectMsg(UpdateBusinessProcess(1, workflowId, TransactionId("tId")))
         businessProcessFactory.reply(BusinessProcessStatusNotChanged(1))
         docPackRouterProbe.expectNoMsg()
       }

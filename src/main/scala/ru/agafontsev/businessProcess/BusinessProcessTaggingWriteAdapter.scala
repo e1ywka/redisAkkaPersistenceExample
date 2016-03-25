@@ -8,8 +8,7 @@ class BusinessProcessTaggingWriteAdapter extends WriteEventAdapter {
   override def manifest(event: Any): String = ""
 
   override def toJournal(event: Any): Any = event match {
-    case InitBusinessProcess(wId) => Tagged(event, Set(workflowTag(wId)))
-    case e => e
+    case InitBusinessProcess(WorkflowId(wId)) => Tagged(event, Set(workflowTag(wId)))
   }
 }
 

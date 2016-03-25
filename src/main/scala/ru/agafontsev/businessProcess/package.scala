@@ -8,15 +8,23 @@ package object businessProcess {
 
   case class AckEnvelope(correlationId: String)
 
-  case class NewTransaction(workflowId: String, transactionId: String)
+  case class NewTransaction(workflowId: WorkflowId, transactionId: TransactionId)
 
-  case class UpdateBusinessProcess(deliveryId: Long, workflowId: String, transactionId: String)
+  case class UpdateBusinessProcess(deliveryId: Long, workflowId: WorkflowId, transactionId: TransactionId)
 
-  case class BusinessProcessStatusUpdated(deliveryId: Long, businessProcessId: String)
+  case class BusinessProcessStatusUpdated(deliveryId: Long, businessProcessId: BusinessProcessId, docPackId: DocPackId)
 
   case class BusinessProcessStatusNotChanged(deliveryId: Long)
 
-  case class UpdateDocPackStatusByBusinessProcess(deliveryId: Long, businessProcessId: String, responseTo: ActorRef)
+  case class UpdateDocPackStatusByBusinessProcess(deliveryId: Long, businessProcessId: BusinessProcessId, docPackId: DocPackId, responseTo: ActorRef)
 
   case class DocPackStatusUpdateConfirmed(deliveryId: Long)
+
+  case class WorkflowId(id: String)
+
+  case class TransactionId(id: String)
+
+  case class DocPackId(id: String)
+
+  case class BusinessProcessId(id: String)
 }

@@ -15,7 +15,7 @@ class TransactionRouter(persistentActorWatcher: ActorRef,
   implicit val timeout = Timeout(3 seconds)
 
   override def receive: Receive = {
-    case env @ ConsumerEnvelope(_, _, NewTransaction(wId, tId)) =>
+    case env @ ConsumerEnvelope(_, _, NewTransaction(WorkflowId(wId), tId)) =>
       redis.allPersistentIdsByTag(BusinessProcessTaggingWriteAdapter.workflowTag(wId)).onSuccess{
         case seq: Seq[String] if seq.nonEmpty =>
           seq.foreach { id =>

@@ -34,7 +34,7 @@ class TransactionRouterSpec(_system: ActorSystem) extends TestKit(_system)
         redisMock)
     )
 
-    val env = ConsumerEnvelope(self, "1", NewTransaction("wId", "tId"))
+    val env = ConsumerEnvelope(self, "1", NewTransaction(WorkflowId("wId"), TransactionId("tId")))
     router ! env
 
     persistenceActorWatcher.expectMsg(GetActorByPersistenceId(existedPersistentId))
@@ -60,8 +60,8 @@ class TransactionRouterSpec(_system: ActorSystem) extends TestKit(_system)
         redisMock)
     )
 
-    val env1 = ConsumerEnvelope(self, "1", NewTransaction("wId", "tId"))
-    val env2 = ConsumerEnvelope(self, "2", NewTransaction("wId", "tId2"))
+    val env1 = ConsumerEnvelope(self, "1", NewTransaction(WorkflowId("wId"), TransactionId("tId1")))
+    val env2 = ConsumerEnvelope(self, "2", NewTransaction(WorkflowId("wId"), TransactionId("tId2")))
     router ! env1
     router ! env2
 

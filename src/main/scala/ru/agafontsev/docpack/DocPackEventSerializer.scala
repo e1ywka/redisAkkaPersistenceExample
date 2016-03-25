@@ -1,6 +1,7 @@
 package ru.agafontsev.docpack
 
 import akka.serialization.SerializerWithStringManifest
+import ru.agafontsev.businessProcess.{BusinessProcessId, DocPackId}
 import ru.agafontsev.docpack.DocPackPersistent._
 
 class DocPackEventSerializer extends SerializerWithStringManifest {
@@ -16,7 +17,7 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
     case "UpdateDocPack.1" =>
       val split = new String(bytes, UTF_8).split("|")
-      UpdateDocPack(split(0))
+      UpdateDocPack(BusinessProcessId(split(0)), DocPackId(split(1)))
 
     case "DocPackUpdated.1" =>
       val split = new String(bytes, UTF_8).split("|")
@@ -28,7 +29,7 @@ class DocPackEventSerializer extends SerializerWithStringManifest {
 
 
   override def toBinary(o: AnyRef): Array[Byte] = o match {
-    case UpdateDocPack(bpId) => s"$bpId".getBytes(UTF_8)
+    case UpdateDocPack(BusinessProcessId(bpId), DocPackId(dpId)) => s"$bpId|$dpId".getBytes(UTF_8)
 
     case DocPackUpdated(d) => s"$d".getBytes(UTF_8)
 

@@ -3,9 +3,11 @@ package ru.agafontsev.businessProcess
 import java.util.UUID
 
 import akka.actor._
+import akka.pattern.{Backoff, BackoffSupervisor}
 import akka.persistence.{AtLeastOnceDelivery, PersistentActor}
 
 import scala.collection.mutable.{HashSet => MutableHashSet}
+import scala.concurrent.duration._
 
 class BusinessProcessPersistent(id: String,
                                 businessProcessFactory: ActorPath,
@@ -33,8 +35,8 @@ class BusinessProcessPersistent(id: String,
         consumerRef ! AckEnvelope(correlationId)
       }
 
-    case BusinessProcessStatusUpdated(deliveryId, bpId) =>
-      persist(DocPackStatusNeedsUpdate(deliveryId, bpId))(handleEvent)
+    case BusinessProcessStatusUpdated(deliveryId, bpId, dpId) =>
+      persist(DocPackStatusNeedsUpdate(deliveryId, bpId, dpId))(handleEvent)
 
     case BusinessProcessStatusNotChanged(deliveryId) =>
       persist(RelatedWorkflowChangeConfirmed(deliveryId))(handleEvent)
@@ -51,9 +53,9 @@ class BusinessProcessPersistent(id: String,
         persist(InitBusinessProcess(wId))(handleEvent)
       }
 
-    case DocPackStatusNeedsUpdate(delvr, bpId) =>
+    case DocPackStatusNeedsUpdate(delvr, bpId, dpId) =>
       confirmDelivery(delvr)
-      deliver(docPackRouter.path)(deliveryId => UpdateDocPackStatusByBusinessProcess(deliveryId, bpId, self))
+      deliver(docPackRouter.path)(deliveryId => UpdateDocPackStatusByBusinessProcess(deliveryId, bpId, dpId, self))
 
     case DocPackStatusConfirmed(delvr) =>
       confirmDelivery(delvr)
@@ -66,21 +68,34 @@ class BusinessProcessPersistent(id: String,
 }
 
 object BusinessProcessPersistent {
-  def props(/*workflowFactory: ActorSelection*/): Props = ???
 
-  def uniquePersistentId = s"business-process:${UUID.randomUUID()}"
 
   sealed trait BusinessProcessEvent
   case class RelatedWorkflowChanged(envelopeCorrelationId: String,
-                                    workflowId: String,
-                                    transactionId: String) extends BusinessProcessEvent
-  case class DocPackStatusNeedsUpdate(deliveryId: Long, businessProcessId: String) extends BusinessProcessEvent
+                                    workflowId: WorkflowId,
+                                    transactionId: TransactionId) extends BusinessProcessEvent
+  case class DocPackStatusNeedsUpdate(deliveryId: Long, businessProcessId: BusinessProcessId, docPackId: DocPackId) extends BusinessProcessEvent
   case class DocPackStatusConfirmed(deliveryId: Long) extends BusinessProcessEvent
   case class RelatedWorkflowChangeConfirmed(deliveryId: Long) extends BusinessProcessEvent
 
-  case class InitBusinessProcess(workflowId: String) extends BusinessProcessEvent
+  case class InitBusinessProcess(workflowId: WorkflowId) extends BusinessProcessEvent
 
   sealed trait State
   case object Idle extends State
   case object Ready extends State
+
+  def propsWithBackoffSupervisor(persistenceId: String, businessProcessFactory: ActorPath, docPackRouter: ActorRef): Props = {
+    val childProps = Props(
+      new BusinessProcessPersistent(persistenceId, businessProcessFactory, docPackRouter))
+    BackoffSupervisor.props(
+      Backoff.onStop(
+        childProps,
+        s"$persistenceId-child",
+        2 seconds,
+        30 seconds,
+        0.2)
+    )
+  }
+
+  def uniquePersistentId(): String = s"business-process-persistent-${UUID.randomUUID()}"
 }
