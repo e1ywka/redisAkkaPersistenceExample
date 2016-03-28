@@ -16,17 +16,19 @@ class TransactionRouterSpec(_system: ActorSystem) extends TestKit(_system)
     system.terminate()
   }
 
-  "Transaction router" should "query existing tags for new transaction" in {
-    val existedPersistentId = "p1"
+  trait SetupFixture {
     val persistenceActorWatcher = TestProbe()
     val persistenceActor = TestProbe()
 
+  }
+
+  "Transaction router" should "query existing tags for new transaction" in new SetupFixture {
+    val existedPersistentId = "p1"
     val redisMock = new RedisJournalTag {
       override def allPersistentIdsByTag(tag: String)(implicit actorSystem: ActorSystem): Future[Seq[String]] = {
         Future.successful(Seq(existedPersistentId))
       }
     }
-
     val router = system.actorOf(
       Props(
         classOf[TransactionRouter],
@@ -43,16 +45,12 @@ class TransactionRouterSpec(_system: ActorSystem) extends TestKit(_system)
     persistenceActor.expectMsg(env)
   }
 
-  "Transaction router" should "ask for persistent actor creation" in {
-    val persistenceActorWatcher = TestProbe()
-    val persistenceActor = TestProbe()
-
+  "Transaction router" should "ask for persistent actor creation" in new SetupFixture {
     val redisMock = new RedisJournalTag {
       override def allPersistentIdsByTag(tag: String)(implicit actorSystem: ActorSystem): Future[Seq[String]] = {
         Future.successful(Seq.empty)
       }
     }
-
     val router = system.actorOf(
       Props(
         classOf[TransactionRouter],

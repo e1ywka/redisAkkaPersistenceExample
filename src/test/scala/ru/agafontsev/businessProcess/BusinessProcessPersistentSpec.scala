@@ -18,19 +18,22 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
 
   def this() = this(ActorSystem("BusinessProcessPersistentSpec", ConfigFactory.load()))
 
-  "Business process" should {
-    "при повторном запросе с тем correlationId запрос не обрабатывается" in {
-      val docPackRouterProbe = TestProbe()
-      val businessProcessFactory = TestProbe()
-      val persistentId = UUID.randomUUID().toString
-      val workflowId = WorkflowId(UUID.randomUUID().toString)
+  trait SetupFixture {
+    val docPackRouterProbe = TestProbe()
+    val businessProcessFactory = TestProbe()
+    val persistentId = UUID.randomUUID().toString
+    val workflowId = WorkflowId(UUID.randomUUID().toString)
 
-      val bpActor = system.actorOf(Props(
-        classOf[BusinessProcessPersistent],
-        persistentId,
-        businessProcessFactory.ref.path,
-        docPackRouterProbe.ref)
-      )
+    val bpActor = system.actorOf(Props(
+      classOf[BusinessProcessPersistent],
+      persistentId,
+      businessProcessFactory.ref.path,
+      docPackRouterProbe.ref)
+    )
+  }
+
+  "Business process" should {
+    "при повторном запросе с тем correlationId запрос не обрабатывается" in new SetupFixture {
       within(10.seconds.dilated) {
         bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, TransactionId("tId")))
         expectMsg(AckEnvelope("corId"))
@@ -41,18 +44,7 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
       }
     }
 
-    "при обновлении статуса BusinessProcess может потребоваться обновление статуса пакета" in {
-      val docPackRouterProbe = TestProbe()
-      val businessProcessFactory = TestProbe()
-      val persistentId = UUID.randomUUID().toString
-      val workflowId = WorkflowId(UUID.randomUUID().toString)
-
-      val bpActor = system.actorOf(Props(
-        classOf[BusinessProcessPersistent],
-        persistentId,
-        businessProcessFactory.ref.path,
-        docPackRouterProbe.ref)
-      )
+    "при обновлении статуса BusinessProcess может потребоваться обновление статуса пакета" in new SetupFixture {
       within(10.seconds.dilated) {
         bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, TransactionId("tId")))
         expectMsg(AckEnvelope("corId"))
@@ -63,18 +55,7 @@ class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_syste
       }
     }
 
-    "если обновление статуса business process не произошло, то и пакет обновлять не нужно" in {
-      val docPackRouterProbe = TestProbe()
-      val businessProcessFactory = TestProbe()
-      val persistentId = UUID.randomUUID().toString
-      val workflowId = WorkflowId(UUID.randomUUID().toString)
-
-      val bpActor = system.actorOf(Props(
-        classOf[BusinessProcessPersistent],
-        persistentId,
-        businessProcessFactory.ref.path,
-        docPackRouterProbe.ref)
-      )
+    "если обновление статуса business process не произошло, то и пакет обновлять не нужно" in new SetupFixture  {
       within(10.seconds.dilated) {
         bpActor ! ConsumerEnvelope(self, "corId", NewTransaction(workflowId, TransactionId("tId")))
         expectMsg(AckEnvelope("corId"))
