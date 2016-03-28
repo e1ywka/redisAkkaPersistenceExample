@@ -19,7 +19,7 @@ with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll with 
     system.terminate()
   }
 
-  "Watcher" should "create new actor for workflow id and cache it" in {
+  trait SetupFixture {
     val persistentActorProbe = TestProbe()
     val persistenceId = "1"
     val makerMock = mockFunction[ActorRefFactory, String, ActorRef]
@@ -29,6 +29,9 @@ with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll with 
 
     val watcher = system.actorOf(Props(new PersistentActorWatcher(makerMock, () => persistenceId)))
 
+  }
+
+  "Watcher" should "create new actor for workflow id and cache it" in new SetupFixture {
     watcher ! GetActorByWorkflowId("wId")
     expectMsg(PersistentActorRef(persistentActorProbe.ref))
 
@@ -36,16 +39,7 @@ with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll with 
     expectMsg(PersistentActorRef(persistentActorProbe.ref))
   }
 
-  "Watcher" should "create new actor for workflow id and return same actor for persistence id" in {
-    val persistentActorProbe = TestProbe()
-    val persistenceId = "1"
-    val makerMock = mockFunction[ActorRefFactory, String, ActorRef]
-    makerMock expects(*, persistenceId) returning persistentActorProbe.ref once()
-
-    def uniqueId(): String = UUID.randomUUID().toString
-
-    val watcher = system.actorOf(Props(new PersistentActorWatcher(makerMock, () => persistenceId)))
-
+  "Watcher" should "create new actor for workflow id and return same actor for persistence id" in new SetupFixture {
     watcher ! GetActorByWorkflowId("wId")
     expectMsg(PersistentActorRef(persistentActorProbe.ref))
 
