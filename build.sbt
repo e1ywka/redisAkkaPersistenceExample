@@ -8,6 +8,8 @@ resolvers += Resolver.jcenterRepo
 
 val akkaVersion = "2.4.2"
 
+fork in test := true
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,

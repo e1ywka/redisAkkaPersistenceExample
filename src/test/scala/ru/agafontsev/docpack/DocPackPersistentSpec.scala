@@ -8,13 +8,12 @@ import java.util.UUID
 import akka.actor.{ActorSystem, Props}
 import akka.testkit._
 import org.scalatest.{Matchers, WordSpecLike}
-import ru.agafontsev.DilatedTimeout
+import ru.agafontsev.{AkkaTest, DilatedTimeout}
 import ru.agafontsev.businessProcess.{BusinessProcessId, DocPackId, DocPackStatusUpdateConfirmed, UpdateDocPackStatusByBusinessProcess}
 
 import scala.concurrent.duration._
 
-class DocPackPersistentSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers
-  with ImplicitSender with DilatedTimeout {
+class DocPackPersistentSpec(_system: ActorSystem) extends AkkaTest(_system) {
 
   def this() = this(ActorSystem("DocPackPersistentSpec"))
 

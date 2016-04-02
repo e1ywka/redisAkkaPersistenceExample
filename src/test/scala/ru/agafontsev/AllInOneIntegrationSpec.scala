@@ -15,8 +15,7 @@ import ru.agafontsev.persistent.RedisJournalTagImpl
 
 import scala.concurrent.duration._
 
-class AllInOneIntegrationSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers
-  with ImplicitSender with DilatedTimeout {
+class AllInOneIntegrationSpec(_system: ActorSystem) extends AkkaTest(_system) {
 
   def this() = this(ActorSystem("AllInOneIntegrationSpec"))
 

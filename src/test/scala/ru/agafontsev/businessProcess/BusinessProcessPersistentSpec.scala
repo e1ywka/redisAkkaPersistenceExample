@@ -9,14 +9,13 @@ import akka.actor.{ActorSystem, Props}
 import akka.testkit._
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
-import ru.agafontsev.DilatedTimeout
+import ru.agafontsev.{AkkaTest, DilatedTimeout}
 
 import scala.concurrent.duration._
 
-class BusinessProcessPersistentSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers
-  with ImplicitSender with DilatedTimeout {
+class BusinessProcessPersistentSpec(_system: ActorSystem) extends AkkaTest(_system) {
 
-  def this() = this(ActorSystem("BusinessProcessPersistentSpec", ConfigFactory.load()))
+  def this() = this(ActorSystem("BusinessProcessPersistentSpec"))
 
   trait SetupFixture {
     val docPackRouterProbe = TestProbe()

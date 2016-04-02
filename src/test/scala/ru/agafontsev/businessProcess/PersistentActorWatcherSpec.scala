@@ -9,15 +9,11 @@ import akka.actor._
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
+import ru.agafontsev.AkkaTest
 
-class PersistentActorWatcherSpec(_system: ActorSystem) extends TestKit(_system)
-with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll with MockFactory {
+class PersistentActorWatcherSpec(_system: ActorSystem) extends AkkaTest(_system) with MockFactory {
 
   def this() = this(ActorSystem("PersistentActorWatcherSpec"))
-
-  override protected def afterAll() = {
-    system.terminate()
-  }
 
   trait SetupFixture {
     val persistentActorProbe = TestProbe()
@@ -31,19 +27,21 @@ with FlatSpecLike with Matchers with ImplicitSender with BeforeAndAfterAll with 
 
   }
 
-  "Watcher" should "create new actor for workflow id and cache it" in new SetupFixture {
-    watcher ! GetActorByWorkflowId("wId")
-    expectMsg(PersistentActorRef(persistentActorProbe.ref))
+  "Watcher" should {
+    "create new actor for workflow id and cache it" in new SetupFixture {
+      watcher ! GetActorByWorkflowId("wId")
+      expectMsg(PersistentActorRef(persistentActorProbe.ref))
 
-    watcher ! GetActorByWorkflowId("wId")
-    expectMsg(PersistentActorRef(persistentActorProbe.ref))
-  }
+      watcher ! GetActorByWorkflowId("wId")
+      expectMsg(PersistentActorRef(persistentActorProbe.ref))
+    }
 
-  "Watcher" should "create new actor for workflow id and return same actor for persistence id" in new SetupFixture {
-    watcher ! GetActorByWorkflowId("wId")
-    expectMsg(PersistentActorRef(persistentActorProbe.ref))
+    "create new actor for workflow id and return same actor for persistence id" in new SetupFixture {
+      watcher ! GetActorByWorkflowId("wId")
+      expectMsg(PersistentActorRef(persistentActorProbe.ref))
 
-    watcher ! GetActorByPersistenceId(persistenceId)
-    expectMsg(PersistentActorRef(persistentActorProbe.ref))
+      watcher ! GetActorByPersistenceId(persistenceId)
+      expectMsg(PersistentActorRef(persistentActorProbe.ref))
+    }
   }
 }
